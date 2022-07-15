@@ -2,9 +2,30 @@
 
 
 ## Project descripton
+
 This project creates a web app to categorize messages related to disaster. The data from Figure Eight is preprocessed through ETF pipeline. Then, model is trained through ML pipeline on the cleaned data and dumped through pickle. Finally, flask and plotly is used to deploy the model.
 
-## Instructions:
+The web app is potentially helpful to the community in an event of disaster for it's ability to classify the messages and the related departments can use the information to efficiently act on people's needs in the disaster.
+
+## File description
+
+app\
+| - template\
+| |- master.html `main page of web app`\
+| |- go.html `classification result page of web app`\
+|- run.py `flask file that runs app`\
+data\
+|- disaster_categories.csv `raw data to process`\
+|- disaster_messages.csv `raw data to process`\
+|- process_data.py `script to process the raw data and then save as sql database`\
+|- DisasterResponse.db `database to save clean data to`\
+models\
+|- train_classifier.py `script to train the xgboost model on clean data and dump the model`\
+|- classifier.pkl `saved xgboost model`\
+README.md
+
+## Instructions
+
 0. Install xgboost for running this app.
 
 1. Run the following commands in the project's root directory to set up database and model.
