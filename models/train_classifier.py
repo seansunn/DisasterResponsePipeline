@@ -93,7 +93,6 @@ def tokenize(text):
     Returns:
     clean_tokens    processed cleaned tokens
     '''
-    
     # remove punctuation and make all characters in lower case
     text = re.sub(r"[^a-zA-Z0-9]", " ", text.lower())
     
