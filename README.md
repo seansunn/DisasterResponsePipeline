@@ -41,4 +41,4 @@ README.md
 3. Go to http://0.0.0.0:3001/
 
 ## Licensing, Acknowledgements
-Thanks to Figure Eight for providing the data. Feel free to use any of the code in the jupyter notebook.
+Thanks to Figure Eight for providing the data. Feel free to use any of the code.
