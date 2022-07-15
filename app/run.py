@@ -2,13 +2,14 @@ import re
 import json
 import plotly
 import pandas as pd
-
+import nltk
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
+from sklearn.base import BaseEstimator, TransformerMixin
 from flask import Flask
 from flask import render_template, request, jsonify
-import plotly.graph_objs as pgo
+from plotly.graph_objs import Bar
 import joblib
 from sqlalchemy import create_engine
 
@@ -16,16 +17,62 @@ from sqlalchemy import create_engine
 app = Flask(__name__)
 
 
+class StartingVerbExtractor(BaseEstimator, TransformerMixin):
+    '''
+    StartingVerbExtractor
+    transform messages by tagging and extracting the starting verb
+    
+    Input:
+    BaseEstimator       sklearn BaseEstimator function 
+    TransformerMixin    sklearn TransformerMixin function 
+    
+    Functions:
+    starting_verb       text --> 0 or 1
+    fit                 returns self
+    transform           applys transformation on text and returns dataframe
+    '''
+    def starting_verb(self, text):
+        sentence_list = nltk.sent_tokenize(text)
+        for sentence in sentence_list:
+            pos_tags = nltk.pos_tag(tokenize(sentence))
+            if pos_tags:
+                first_word, first_tag = pos_tags[0]
+                if first_tag in ['VB', 'VBP'] or first_word == 'RT':
+                    return 1
+        return 0
+    
+    def fit(self, x, y=None):
+        return self
+    
+    def transform(self, X):
+        X_tagged = pd.Series(X).apply(self.starting_verb)
+        return pd.DataFrame(X_tagged)
+
+
 def tokenize(text):
+    '''
+    tokenize
+    transfer the raw text message into cleaned tokens
+    
+    Input:
+    text        raw text message
+    
+    Returns:
+    clean_tokens    processed cleaned tokens
+    '''
     # remove punctuation and make all characters in lower case
     text = re.sub(r"[^a-zA-Z0-9]", " ", text.lower())
+    
     # tokenize words
     tokens = word_tokenize(text)
-    # remove stop words
-    tokens = [w for w in tokens if w not in stopwords.words("english")]
+    
+    # remove possible stop words and empty strings
+    tokens = [w.strip() for w in tokens if w not in stopwords.words("english") if w]
+    
     # initiate a wordnet lemmatizer object
     lem = WordNetLemmatizer()
-    # lemmatize each word
+    
+    # lemmatize every word
     clean_tokens = [lem.lemmatize(tok, pos='v') for tok in [lem.lemmatize(t) for t in tokens]]
 
     return clean_tokens
@@ -46,16 +93,21 @@ model = joblib.load("../models/classifier.pkl")
 def index():
     
     # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
     
+    # extract top 10 most frequent categories
+    top_cat = df.drop(['id', 'message', 'original', 'genre'], axis=1)
+    top_cat_lst = top_cat.sum().sort_values(ascending=False)
+    top_names = top_cat_lst.index.tolist()[:10]
+    top_values = top_cat_lst.values.tolist()[:10]
+
     # create visuals
-    # TODO: Below is an example - modify to create your own visuals
     graphs = [
         {
+            # data and layouts for graph 1
             'data': [
-                pgo.Bar(
+                Bar(
                     x=genre_names,
                     y=genre_counts
                 )
@@ -68,6 +120,26 @@ def index():
                 },
                 'xaxis': {
                     'title': "Genre"
+                }
+            }
+        },
+
+        {
+            # data and layouts for graph 2
+            'data': [
+                Bar(
+                    x=top_names,
+                    y=top_values
+                )
+            ],
+
+            'layout': {
+                'title': 'Top 10 Most Frequent Categories',
+                'yaxis': {
+                    'title': "Frequency"
+                },
+                'xaxis': {
+                    'title': "Category"
                 }
             }
         }
