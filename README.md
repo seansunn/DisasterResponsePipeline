@@ -1,4 +1,5 @@
-### Disaster Response Pipeline Project
+# Disaster Response Pipeline Project
+
 
 ## Project descripton
 This project creates a web app to categorize messages related to disaster. The data from Figure Eight is preprocessed through ETF pipeline. Then, model is trained through ML pipeline on the cleaned data and dumped through pickle. Finally, flask and plotly is used to deploy the model.
